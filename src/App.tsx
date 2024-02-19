@@ -1,11 +1,10 @@
 import { Meta, Title } from "@solidjs/meta";
-import { useNavigate, useParams } from "@solidjs/router";
-import { For, createEffect, createSignal, onMount } from "solid-js";
+import { A, useParams } from "@solidjs/router";
+import { For, createSignal, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 
 function App() {
   const params = useParams();
-  const navigate = useNavigate();
   const [month, setMonth] = createSignal(0);
   const [year, setYear] = createSignal(0);
   const [calendars, setCalendars] = createStore<
@@ -54,7 +53,27 @@ function App() {
     generateCalendars();
   }
 
+  function getNextMonthUrl() {
+    if (month() === 11) {
+      return `/${year() + 1}/01`;
+    } else {
+      return `/${year()}/${(month() + 2).toString().padStart(2, "0")}`;
+    }
+  }
+
+  function getPrevMonthUrl() {
+    if (month() === 0 && year() === 1970) {
+      return `/${year()}/${(month() + 1).toString().padStart(2, "0")}`;
+    }
+    if (month() === 0) {
+      return `/${year() - 1}/12`;
+    } else {
+      return `/${year()}/${month().toString().padStart(2, "0")}`;
+    }
+  }
+
   onMount(() => {
+    console.log("mount");
     const curDate = new Date();
     if (params.year && params.month) {
       curDate.setFullYear(parseInt(params.year));
@@ -66,10 +85,6 @@ function App() {
     setMonth(curDate.getMonth());
     setYear(curDate.getFullYear());
     generateCalendars();
-  });
-
-  createEffect(() => {
-    navigate(`/${year()}/${(month() + 1).toString().padStart(2, "0")}`);
   });
 
   function generateCalendars() {
@@ -154,12 +169,12 @@ function App() {
             <span class="text-5xl">{year()}</span>
           </h1>
           <div>
-            <button onClick={prevMonth} class="px-4 py-3">
+            <A href={getPrevMonthUrl()} onclick={prevMonth} class="px-4 py-3">
               prev
-            </button>
-            <button onClick={nextMonth} class="px-4 py-3">
+            </A>
+            <A href={getNextMonthUrl()} onClick={nextMonth} class="px-4 py-3">
               next
-            </button>
+            </A>
           </div>
         </div>
         <div class="grid grid-cols-7 gap-1">
