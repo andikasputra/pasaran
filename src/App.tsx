@@ -1,3 +1,4 @@
+import { Meta, Title } from "@solidjs/meta";
 import { useNavigate, useParams } from "@solidjs/router";
 import { For, createEffect, createSignal, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
@@ -68,7 +69,7 @@ function App() {
   });
 
   createEffect(() => {
-      navigate(`/${year()}/${(month() + 1).toString().padStart(2, "0")}`);
+    navigate(`/${year()}/${(month() + 1).toString().padStart(2, "0")}`);
   });
 
   function generateCalendars() {
@@ -132,47 +133,64 @@ function App() {
   }
 
   return (
-    <div class="m-auto max-w-3xl p-2">
-      <div class="flex justify-between">
-        <h1 class="flex flex-col font-bold">
-          <span class="text-6xl">{months[month()]}</span>
-          <span class="text-5xl">{year()}</span>
-        </h1>
-        <div>
-          <button onClick={prevMonth} class="px-4 py-3">
-            prev
-          </button>
-          <button onClick={nextMonth} class="px-4 py-3">
-            next
-          </button>
+    <>
+      <Title>
+        Pasaran {months[month()]} {year()}
+      </Title>
+      <Meta
+        name="description"
+        content={`Kalender pasaran jawa ${months[month()]} ${year()}`}
+      />
+      <Meta
+        name="keyword"
+        content={`pasaran, kalender jawa, pon, pahing, kliwon, legi, wage, ${
+          months[month()]
+        }, ${year()}`}
+      />
+      <div class="m-auto max-w-3xl p-2">
+        <div class="flex justify-between">
+          <h1 class="flex flex-col font-bold">
+            <span class="text-6xl">{months[month()]}</span>
+            <span class="text-5xl">{year()}</span>
+          </h1>
+          <div>
+            <button onClick={prevMonth} class="px-4 py-3">
+              prev
+            </button>
+            <button onClick={nextMonth} class="px-4 py-3">
+              next
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+          <For each={days}>
+            {(day, i) => (
+              <div
+                class={`uppercase font-bold py-6 text-center ${getDayColor(
+                  i()
+                )}`}
+              >
+                {day}
+              </div>
+            )}
+          </For>
+          <For each={calendars}>
+            {(calendar, i) => (
+              <div
+                class={`${
+                  isCurrentDate(i()) ? "bg-gray-300" : "bg-gray-100"
+                } py-4 flex flex-col items-center gap-1 ${getDayColor(i())}`}
+              >
+                <span class="font-bold text-2xl">{calendar.date}</span>
+                <span class="text-xs uppercase">
+                  {calendar.pasar !== undefined ? pasaran[calendar.pasar] : ""}
+                </span>
+              </div>
+            )}
+          </For>
         </div>
       </div>
-      <div class="grid grid-cols-7 gap-1">
-        <For each={days}>
-          {(day, i) => (
-            <div
-              class={`uppercase font-bold py-6 text-center ${getDayColor(i())}`}
-            >
-              {day}
-            </div>
-          )}
-        </For>
-        <For each={calendars}>
-          {(calendar, i) => (
-            <div
-              class={`${
-                isCurrentDate(i()) ? "bg-gray-300" : "bg-gray-100"
-              } py-4 flex flex-col items-center gap-1 ${getDayColor(i())}`}
-            >
-              <span class="font-bold text-2xl">{calendar.date}</span>
-              <span class="text-xs uppercase">
-                {calendar.pasar !== undefined ? pasaran[calendar.pasar] : ""}
-              </span>
-            </div>
-          )}
-        </For>
-      </div>
-    </div>
+    </>
   );
 }
 
