@@ -1,7 +1,10 @@
-import { For, createSignal, onMount } from "solid-js";
+import { useNavigate, useParams } from "@solidjs/router";
+import { For, createEffect, createSignal, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 
 function App() {
+  const params = useParams();
+  const navigate = useNavigate();
   const [month, setMonth] = createSignal(0);
   const [year, setYear] = createSignal(0);
   const [calendars, setCalendars] = createStore<
@@ -52,9 +55,20 @@ function App() {
 
   onMount(() => {
     const curDate = new Date();
+    if (params.year && params.month) {
+      curDate.setFullYear(parseInt(params.year));
+      curDate.setMonth(parseInt(params.month) - 1);
+    } else if (params.year && !params.month) {
+      curDate.setFullYear(parseInt(params.year));
+      curDate.setMonth(0);
+    }
     setMonth(curDate.getMonth());
     setYear(curDate.getFullYear());
     generateCalendars();
+  });
+
+  createEffect(() => {
+      navigate(`/${year()}/${(month() + 1).toString().padStart(2, "0")}`);
   });
 
   function generateCalendars() {
@@ -112,7 +126,8 @@ function App() {
   function isCurrentDate(date: number) {
     return (
       date === new Date().getDate() + padding() &&
-      month() === new Date().getMonth()
+      month() === new Date().getMonth() &&
+      year() === new Date().getFullYear()
     );
   }
 
@@ -146,7 +161,7 @@ function App() {
           {(calendar, i) => (
             <div
               class={`${
-                isCurrentDate(i()) ? "bg-gray-200" : "bg-gray-100"
+                isCurrentDate(i()) ? "bg-gray-300" : "bg-gray-100"
               } py-4 flex flex-col items-center gap-1 ${getDayColor(i())}`}
             >
               <span class="font-bold text-2xl">{calendar.date}</span>
