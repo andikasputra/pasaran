@@ -1,10 +1,11 @@
 import { Meta, Title } from "@solidjs/meta";
-import { A, useParams } from "@solidjs/router";
-import { For, createSignal, onMount } from "solid-js";
+import { A, useNavigate, useParams } from "@solidjs/router";
+import { For, createEffect, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
 function App() {
   const params = useParams();
+  const navigate = useNavigate();
   const [month, setMonth] = createSignal(0);
   const [year, setYear] = createSignal(0);
   const [calendars, setCalendars] = createStore<
@@ -28,31 +29,6 @@ function App() {
     "Des",
   ];
 
-  function nextMonth() {
-    if (month() === 11) {
-      setMonth(0);
-      setYear((prev) => prev + 1);
-    } else {
-      setMonth((prev) => prev + 1);
-    }
-    generateCalendars();
-  }
-
-  function prevMonth() {
-    if (month() === 0 && year() === 1970) {
-      setMonth(0);
-      setYear(1970);
-      return;
-    }
-    if (month() === 0) {
-      setMonth(11);
-      setYear((prev) => prev - 1);
-    } else {
-      setMonth((prev) => prev - 1);
-    }
-    generateCalendars();
-  }
-
   function getNextMonthUrl() {
     if (month() === 11) {
       return `/${year() + 1}/01`;
@@ -72,9 +48,18 @@ function App() {
     }
   }
 
-  onMount(() => {
-    console.log("mount");
+  createEffect(() => {
     const curDate = new Date();
+    if (!params.year && !params.month) {
+      navigate(`/${curDate.getFullYear()}/${(curDate.getMonth() + 1).toString().padStart(2, '0')}`)
+      return;
+    } else if (params.year && !params.month) {
+      navigate(`/${params.year}/01`)
+      return;
+    }
+    if (parseInt(params.year) === year() && parseInt(params.month) - 1 === month()) {
+      return;
+    }
     if (params.year && params.month) {
       curDate.setFullYear(parseInt(params.year));
       curDate.setMonth(parseInt(params.month) - 1);
@@ -85,7 +70,7 @@ function App() {
     setMonth(curDate.getMonth());
     setYear(curDate.getFullYear());
     generateCalendars();
-  });
+  })
 
   function generateCalendars() {
     const firstDate = new Date(year(), month(), 1);
@@ -169,10 +154,10 @@ function App() {
             <span class="text-5xl">{year()}</span>
           </h1>
           <div>
-            <A href={getPrevMonthUrl()} onclick={prevMonth} class="px-4 py-3">
+            <A href={getPrevMonthUrl()} class="px-4 py-3">
               prev
             </A>
-            <A href={getNextMonthUrl()} onClick={nextMonth} class="px-4 py-3">
+            <A href={getNextMonthUrl()} class="px-4 py-3">
               next
             </A>
           </div>
